@@ -1,2 +1,2 @@
 # wordmeister-api
-Backend parts of wordmeister project
+Backend part of wordmeister project
