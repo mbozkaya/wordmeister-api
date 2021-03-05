@@ -1,0 +1,13 @@
+*.suo
+obj/
+bin/
+.vs/
+*.ps1
+*.cmd
+*.cmd
+*.json
+*.csproj.user
+Migrations/
+UploadFiles/
+Dockerfile
+.dockerignore
