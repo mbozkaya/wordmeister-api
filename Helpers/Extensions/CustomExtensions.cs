@@ -6,7 +6,7 @@ using static wordmeister_api.Helpers.Enums;
 
 namespace wordmeister_api.Helpers
 {
-    public static class Extensions
+    public static class CustomExtensions
     {
         public static string TurkishCharReplace(this string text)
         {

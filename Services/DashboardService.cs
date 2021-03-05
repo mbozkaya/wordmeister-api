@@ -34,7 +34,7 @@ namespace wordmeister_api.Services
             return new DashboardResponse.StandartDashboardCard
             {
                 DateRange = (int)dateRange,
-                Rate = dateRange == DateRange.AllTime ? decimal.Zero : (comparedWords == 0 ? addedWordsByDate : (decimal)addedWordsByDate / comparedWords),
+                Rate = dateRange == DateRange.AllTime ? decimal.Zero : GetIncreasingRate(addedWordsByDate, comparedWords),
                 WordCount = addedWordsByDate
             };
         }
@@ -54,7 +54,7 @@ namespace wordmeister_api.Services
             return new DashboardResponse.StandartDashboardCard
             {
                 DateRange = (int)dateRange,
-                Rate = comparedWords == 0 ? learnedWords : (decimal)learnedWords / comparedWords,
+                Rate = GetIncreasingRate(learnedWords, comparedWords),
                 WordCount = learnedWords
             };
         }
@@ -76,7 +76,7 @@ namespace wordmeister_api.Services
             return new DashboardResponse.StandartDashboardCard
             {
                 DateRange = (int)dateRange,
-                Rate = compareSentences == 0 ? userSentences : (decimal)userSentences / compareSentences,
+                Rate = GetIncreasingRate(userSentences, compareSentences),
                 WordCount = userSentences
             };
         }
@@ -86,7 +86,7 @@ namespace wordmeister_api.Services
             int userWordCount = _dbContext.UserWords.Where(w => w.UserId == userId).Count();
             int userLearnedWordCount = _dbContext.UserWords.Where(w => w.UserId == userId && w.IsLearned).Count();
 
-            return userWordCount == 0 ? userLearnedWordCount : (decimal)userLearnedWordCount / userWordCount;
+            return userWordCount == 0 ? decimal.Zero : (decimal)userLearnedWordCount / userWordCount;
         }
 
         public DashboardResponse.AllCards GetDashboard(int userId, DashboardRequest.AllCards model)
@@ -275,6 +275,16 @@ namespace wordmeister_api.Services
             chart.Labels = labels;
 
             return chart;
+        }
+
+        private decimal GetIncreasingRate(int currentValue, int pastValue)
+        {
+            if (pastValue == 0)
+            {
+                return decimal.Zero;
+            }
+
+            return (decimal)currentValue / pastValue - 1;
         }
     }
 }
