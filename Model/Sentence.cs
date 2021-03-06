@@ -8,9 +8,7 @@ namespace wordmeister_api.Model
         public long? UserId { get; set; }
         public bool IsPrivate { get; set; }
         public long WordId { get; set; }
-        [ForeignKey("WordId")]
         public virtual Word Word { get; set; }
-        [ForeignKey("UserId")]
         public virtual User User { get; set; }
     }
 }

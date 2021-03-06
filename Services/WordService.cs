@@ -477,8 +477,8 @@ namespace wordmeister_api.Services
                 {
                     CreatedDate = DateTime.Now,
                     IsIncludeFavorite = true,
-                    IsIncludeLearned = false,
-                    IsIncludePoint = true,
+                    IsIncludeLearned = true,
+                    IsIncludePoint = false,
                     Order = "CreatedDate",
                     OrderBy = "desc",
                     UserId = userId,

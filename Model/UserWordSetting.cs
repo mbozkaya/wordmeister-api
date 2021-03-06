@@ -8,9 +8,7 @@ namespace wordmeister_api.Model
 {
     public class UserWordSetting : BaseModel
     {
-        [ForeignKey("UserId")]
         public long UserId { get; set; }
-
         public bool IsIncludeLearned { get; set; }
         public bool IsIncludeFavorite { get; set; }
         public bool IsIncludePoint { get; set; }

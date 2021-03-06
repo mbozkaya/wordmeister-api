@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace wordmeister_api.Model
 {
-    public class Country
+    public class MailUserWord
     {
         [Key]
         public long Id { get; set; }
-        public string Name { get; set; }
-        public virtual ICollection<UserInformation> UserInformations { get; set; }
-
+        public int UserWordId { get; set; }
+        public virtual UserWord UserWord { get; set; }
     }
 }

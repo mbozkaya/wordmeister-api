@@ -16,6 +16,7 @@ namespace wordmeister_api.Entity
             modelBuilder.Entity<WordFrequency>().Property(obj => obj.PerMillion).HasPrecision(4, 2);
             modelBuilder.Entity<UserWord>().Property(obj => obj.Point).HasPrecision(4, 2);
             OnModelCreatingPartial(modelBuilder);
+            OnModelCreatingSeed(modelBuilder);
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -43,5 +44,10 @@ namespace wordmeister_api.Entity
         public DbSet<WordSynonym> WordSynonyms { get; set; }
         public DbSet<WordTypeOf> WordTypeOfs { get; set; }
         public DbSet<UserWordSetting> UserWordSettings{ get; set; }
+        public DbSet<UserSettingType> UserSettingsTypes{ get; set; }
+        public DbSet<Logs> Logs{ get; set; }
+        public DbSet<MailLog> MailLogs{ get; set; }
+        public DbSet<MailUserWord> MailUserWords{ get; set; }
+
     }
 }

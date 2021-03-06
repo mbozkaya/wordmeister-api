@@ -7,17 +7,13 @@ using System.Threading.Tasks;
 
 namespace wordmeister_api.Model
 {
-    public class BaseModel
+    public class UserSettingType 
     {
         [Key]
         public long Id { get; set; }
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime? UpdateDate { get; set; }
-    }
+        public string Title { get; set; }
+        public int Order { get; set; }
+        public virtual ICollection<UserSetting> UserSettings{ get; set; }
 
-    public class WordRelatedTableBaseModel : BaseModel
-    {
-        public long WordId { get; set; }
-        public virtual Word Word { get; set; }
     }
 }
