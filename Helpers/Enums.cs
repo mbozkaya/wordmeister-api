@@ -30,5 +30,10 @@ namespace wordmeister_api.Helpers
             LastSixMonth = 4,
             AllTime = 5,
         }
+
+        public enum SettingType
+        {
+            MailNotification = 1,
+        }
     }
 }
