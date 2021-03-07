@@ -10,12 +10,14 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 using wordmeister_api.Dtos;
 using wordmeister_api.Entity;
 using wordmeister_api.Helpers;
+using wordmeister_api.Helpers.Extensions;
 using wordmeister_api.Interfaces;
 using wordmeister_api.Services;
 
@@ -41,14 +43,13 @@ namespace wordmeister_api
             services.AddSingleton<Serilog.ILogger>(x =>
             {
                 var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .Build();
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json")
+                    .Build();
 
                 return new LoggerConfiguration()
                     .ReadFrom.Configuration(configuration)
                     .CreateLogger();
-                //return new LoggerConfiguration().WriteTo.PostgreSQL(Configuration["Serilog:ConnectionString"], Configuration["Serilog:TableName"], autoCreateSqlTable: true).CreateLogger();
             });
             services.AddSwaggerGen(options =>
             {
@@ -59,6 +60,13 @@ namespace wordmeister_api
                     Description = "Sample interface for test service",
                 });
                 options.CustomSchemaIds(x => x.FullName);
+            });
+
+            services.AddCronJob<NotificationJob>(c =>
+            {
+                c.TimeZoneInfo = TimeZoneInfo.Local;
+                c.CronExpression = @"* * * * *";
+                //c.CronExpression = @"0 0/15 * 1/1 * ? *";
             });
 
             // Configure Compression level
