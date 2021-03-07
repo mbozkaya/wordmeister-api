@@ -10,7 +10,7 @@ namespace wordmeister_api.Model
     {
         [Key]
         public long Id { get; set; }
-        public int UserId { get; set; }
+        public long UserId { get; set; }
         public virtual User Users { get; set; }
         public DateTime CreatedDate { get; set; }
     }

@@ -8,9 +8,9 @@ namespace wordmeister_api.Model
 {
     public class UserSetting : BaseModel
     {
-        public int UserId { get; set; }
+        public long UserId { get; set; }
         public virtual User User { get; set; }
-        public int UserSettingTypeId { get; set; }
+        public long UserSettingTypeId { get; set; }
         public virtual UserSettingType UserSettingType { get; set; }
         public bool Enable { get; set; }
         public string Description { get; set; }

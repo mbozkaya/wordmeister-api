@@ -16,5 +16,7 @@ namespace wordmeister_api.Model
         public virtual Country Country { get; set; }
         public string Phone { get; set; }
         public string SlackToken { get; set; }
+        public int NotificationHour { get; set; }
+        public int NotificationMinute { get; set; }
     }
 }
