@@ -10,7 +10,7 @@ namespace wordmeister_api.Interfaces
     public interface IWordService
     {
         WordResponse.Word GetWord(long wordId, int userId);
-        PageResponse GetWords(int skipRows, int pageSize, int userId);
+        PageResponse GetWords(int skipRows, int pageSize, string orderBy, string order, int userId);
         ResponseResult AddWord(WordRequest.Add model, int userId);
         void UpdateWord(WordRequest.Add model, int userId);
         void DeleteWord(long wordId, int userId);

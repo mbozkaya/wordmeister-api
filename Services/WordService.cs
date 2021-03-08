@@ -54,10 +54,14 @@ namespace wordmeister_api.Services
             };
         }
 
-        public PageResponse GetWords(int pageNumber, int pageSize, int userId)
+        public PageResponse GetWords(int pageNumber, int pageSize, string orderBy, string order, int userId)
         {
+            if (orderBy == "name")
+            {
+                orderBy = "text";
+            }
             var query = _dbContext.UserWords.Where(x => x.UserId == userId);
-            var page = query.OrderByDescending(x => x.CreatedDate)
+            var page = query
                 .Select(x => new WordResponse.Word
                 {
                     Id = x.WordId,
@@ -70,7 +74,10 @@ namespace wordmeister_api.Services
                     }).ToList(),
                     CreatedDate = x.CreatedDate,
                 })
-            .Skip((pageNumber) * pageSize).Take(pageSize).ToList();
+            .OrderBy($"{orderBy} {order}")
+            .Skip((pageNumber) * pageSize)
+            .Take(pageSize)
+            .ToList();
 
             int total = query.Count();
             var words = page.Select(x => x);
@@ -339,121 +346,135 @@ namespace wordmeister_api.Services
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var db = scope.ServiceProvider.GetService<WordmeisterContext>();
-
-                var response = await _wordAPIService.GetWord(word.Text);
-
-                var now = DateTime.Now;
-                var executionStrategy = db.Database.CreateExecutionStrategy();
-
-                executionStrategy.Execute(() =>
+                WordApiResponse.RandomDto response = new WordApiResponse.RandomDto();
+                bool success = false;
+                try
                 {
-                    using (var transaction = db.Database.BeginTransaction())
+                    response = await _wordAPIService.GetWord(word.Text);
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    //log
+
+
+                }
+
+                if (success)
+                {
+                    var now = DateTime.Now;
+                    var executionStrategy = db.Database.CreateExecutionStrategy();
+
+                    executionStrategy.Execute(() =>
                     {
-                        try
+                        using (var transaction = db.Database.BeginTransaction())
                         {
-                            db.WordFrequencies.Add(new WordFrequency
+                            try
                             {
-                                WordId = word.Id,
-                                PerMillion = response.Frequency,
-                                Zipf = decimal.Zero,
-                                Diversity = decimal.Zero,
-                                CreatedDate = now,
-                            });
-
-                            db.WordPronunciations.Add(new WordPronunciation
-                            {
-                                WordId = word.Id,
-                                All = response.Pronunciation.All,
-                                Noun = response.Pronunciation.Noun,
-                                Verb = response.Pronunciation.Verb,
-                                CreatedDate = now,
-                            });
-
-                            response.Syllables.List.ForEach(f =>
-                            {
-                                db.WordSyllables.Add(new WordSyllable
+                                db.WordFrequencies.Add(new WordFrequency
                                 {
-                                    Syllable = f,
                                     WordId = word.Id,
+                                    PerMillion = response.Frequency,
+                                    Zipf = decimal.Zero,
+                                    Diversity = decimal.Zero,
                                     CreatedDate = now,
                                 });
-                            });
 
-                            response.Results.ForEach(result =>
-                            {
-                                result.Antonyms.ForEach(antonym =>
-                                {
-                                    db.WordAntonyms.Add(new WordAntonym
-                                    {
-                                        WordId = word.Id,
-                                        Antonym = antonym,
-                                        CreatedDate = now,
-                                    });
-                                });
-
-                                db.WordDefinations.Add(new WordDefinition
+                                db.WordPronunciations.Add(new WordPronunciation
                                 {
                                     WordId = word.Id,
-                                    Definition = result.Definition,
-                                    PartOfSpeech = result.PartOfSpeech,
-                                    CreatedDate = now
+                                    All = response.Pronunciation.All,
+                                    Noun = response.Pronunciation.Noun,
+                                    Verb = response.Pronunciation.Verb,
+                                    CreatedDate = now,
                                 });
 
-                                result.Examples.ForEach(example =>
+                                response.Syllables.List.ForEach(f =>
                                 {
-                                    db.Sentences.Add(new Sentence
+                                    db.WordSyllables.Add(new WordSyllable
                                     {
+                                        Syllable = f,
                                         WordId = word.Id,
-                                        Text = example,
-                                        CreatedDate = now
-                                    });
-                                });
-
-                                result.HasTypes.ForEach(hasType =>
-                                {
-                                    db.WordHasTypes.Add(new WordHasType
-                                    {
-                                        WordId = word.Id,
-                                        Type = hasType,
                                         CreatedDate = now,
                                     });
                                 });
 
-                                result.Synonyms.ForEach(synonym =>
+                                response.Results.ForEach(result =>
                                 {
-                                    db.WordSynonyms.Add(new WordSynonym
+                                    result.Antonyms.ForEach(antonym =>
                                     {
-                                        WordId = word.Id,
-                                        Synonym = synonym,
-                                        CreatedDate = now,
+                                        db.WordAntonyms.Add(new WordAntonym
+                                        {
+                                            WordId = word.Id,
+                                            Antonym = antonym,
+                                            CreatedDate = now,
+                                        });
                                     });
-                                });
 
-
-                                result.TypeOf.ForEach(typeOf =>
-                                {
-                                    db.WordTypeOfs.Add(new WordTypeOf
+                                    db.WordDefinations.Add(new WordDefinition
                                     {
                                         WordId = word.Id,
-                                        TypeOf = typeOf,
+                                        Definition = result.Definition,
+                                        PartOfSpeech = result.PartOfSpeech,
                                         CreatedDate = now
                                     });
+
+                                    result.Examples.ForEach(example =>
+                                    {
+                                        db.Sentences.Add(new Sentence
+                                        {
+                                            WordId = word.Id,
+                                            Text = example,
+                                            CreatedDate = now
+                                        });
+                                    });
+
+                                    result.HasTypes.ForEach(hasType =>
+                                    {
+                                        db.WordHasTypes.Add(new WordHasType
+                                        {
+                                            WordId = word.Id,
+                                            Type = hasType,
+                                            CreatedDate = now,
+                                        });
+                                    });
+
+                                    result.Synonyms.ForEach(synonym =>
+                                    {
+                                        db.WordSynonyms.Add(new WordSynonym
+                                        {
+                                            WordId = word.Id,
+                                            Synonym = synonym,
+                                            CreatedDate = now,
+                                        });
+                                    });
+
+
+                                    result.TypeOf.ForEach(typeOf =>
+                                    {
+                                        db.WordTypeOfs.Add(new WordTypeOf
+                                        {
+                                            WordId = word.Id,
+                                            TypeOf = typeOf,
+                                            CreatedDate = now
+                                        });
+                                    });
+
                                 });
 
-                            });
 
+                                db.SaveChanges();
 
-                            db.SaveChanges();
-
-                            transaction.Commit();
+                                transaction.Commit();
+                            }
+                            catch (Exception ex)
+                            {
+                                //TODO Log
+                                transaction.Rollback();
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            //TODO Log
-                            transaction.Rollback();
-                        }
-                    }
-                });
+                    });
+                }
             }
         }
 

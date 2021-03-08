@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -161,8 +162,18 @@ namespace wordmeister_api.Services
                     {
                         response.EnsureSuccessStatusCode();
                         var responseResultStr = await response.Content.ReadAsStringAsync();
+                        var jsonObject = JObject.Parse(responseResultStr);
 
-                        responseResult = JsonConvert.DeserializeObject<T>(responseResultStr);
+                        if (typeof(T).Name == "RandomDto" && jsonObject["pronunciation"].Type == JTokenType.String)
+                        {
+                            jsonObject["pronunciation"] = $"\"All\":\"{jsonObject["pronunciation"].ToString()}\",\"Noun\":\"\",\"Verb\":\"\"";
+                            responseResult = jsonObject.ToObject<T>();
+                        }
+                        else
+                        {
+                            responseResult = JsonConvert.DeserializeObject<T>(responseResultStr);
+                        }
+
                     }
                     catch (HttpRequestException httpEx)
                     {

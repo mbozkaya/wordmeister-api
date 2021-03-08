@@ -42,7 +42,7 @@ namespace wordmeister_api.Controllers
         [HttpPost("GetWords")]
         public IActionResult GetWords(PagingDto.Request model)
         {
-            var response = _wordService.GetWords(model.PageCount, model.PageSize, User.GetUserId());
+            var response = _wordService.GetWords(model.PageCount, model.PageSize, model.OrderBy, model.Order, User.GetUserId());
 
             var result = new General.ResponseResult() { Data = response };
 
