@@ -65,7 +65,7 @@ namespace wordmeister_api.Services
                 return new General.ResponseResult() { Error = true, ErrorMessage = "There is a user that have same email" };
             }
 
-            _wordMeisterDbContext.Users.Add(new User
+            var newUser = _wordMeisterDbContext.Users.Add(new User
             {
                 Email = model.Email,
                 FirstName = model.FirstName,
@@ -79,6 +79,7 @@ namespace wordmeister_api.Services
             _wordMeisterDbContext.SaveChanges();
 
             //TODO Send Email
+            CreateDefaultSettings(newUser.Entity.Id);
 
             return new General.ResponseResult();
         }
@@ -336,6 +337,35 @@ namespace wordmeister_api.Services
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+        private void CreateDefaultSettings(long userId)
+        {
+            List<UserSetting> userSettings = new List<UserSetting>();
+
+            var settingTypes = Enum.GetValues(typeof(Enums.SettingType)).Cast<Enums.SettingType>();
+
+            foreach (var item in settingTypes.Select((value, i) => new { value, i }))
+            {
+                userSettings.Add(new UserSetting
+                {
+                    CreatedDate = DateTime.Now,
+                    Enable = false,
+                    UserId = userId,
+                    UserSettingTypeId = item.i + 1,
+                });
+            }
+
+            _wordMeisterDbContext.UserSettings.AddRange(userSettings);
+
+            _wordMeisterDbContext.UserInformations.Add(new UserInformation
+            {
+                CountryId = 218,
+                NotificationHour = 0,
+                NotificationMinute = 0,
+                UserId = userId,
+            });
+
+            _wordMeisterDbContext.SaveChanges();
         }
     }
 }
