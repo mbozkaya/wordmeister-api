@@ -22,5 +22,7 @@ namespace wordmeister_api.Interfaces
         General.ResponseResult GetAccountInformation(int userId);
         List<AccountResponse.UserImages> GetUserImages(int userId);
         General.ResponseResult RemoveImage(long id, long userId);
+        General.ResponseResult UpdateSettings(AccountRequest.UpdateSettings model, long userId);
+        General.ResponseResult GetSettings(long userId);
     }
 }

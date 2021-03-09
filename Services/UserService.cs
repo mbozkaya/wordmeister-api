@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -276,6 +277,68 @@ namespace wordmeister_api.Services
             _wordMeisterDbContext.SaveChanges();
 
             return new General.ResponseResult();
+        }
+
+        public General.ResponseResult UpdateSettings(AccountRequest.UpdateSettings model, long userId)
+        {
+            List<UserSetting> userSettings = _wordMeisterDbContext.UserSettings
+                .Where(w => w.UserId == userId)
+                .ToList();
+
+            foreach (var setting in model.UserSettings)
+            {
+                var userSetting = userSettings.Where(w => w.UserSettingTypeId == setting.Type).FirstOrDefault();
+
+                if (userSetting == null)
+                {
+                    userSetting = new UserSetting
+                    {
+                        UserId = userId,
+                        UserSettingTypeId = setting.Type,
+                        CreatedDate = DateTime.Now
+                    };
+                    _wordMeisterDbContext.UserSettings.Add(userSetting);
+                }
+
+                userSetting.Enable = setting.Enable;
+
+                if (setting.Type == (int)SettingType.MailNotification && setting.Enable)
+                {
+                    var userInformation = _wordMeisterDbContext.UserInformations
+                        .Where(w => w.UserId == userId)
+                        .FirstOrDefault();
+
+                    userInformation.NotificationHour = model.Hour.GetValueOrDefault(23);
+                    userInformation.NotificationMinute = model.Minute.GetValueOrDefault(0);
+                }
+
+                _wordMeisterDbContext.SaveChanges();
+            }
+
+            return new General.ResponseResult();
+        }
+
+        public General.ResponseResult GetSettings(long userId)
+        {
+            var allSettings = new AccountResponse.Settings();
+
+            var user = _wordMeisterDbContext.Users
+                .Where(w => w.Id == userId)
+                .Include(i => i.UserInformations)
+                .Include(i => i.UserSettings)
+                .FirstOrDefault();
+
+            allSettings.MailSetting = user.UserSettings
+                .Where(w => w.UserSettingTypeId == (int)SettingType.MailNotification)
+                .Select(s => s.Enable)
+                .FirstOrDefault();
+
+            var userInformation = user.UserInformations.FirstOrDefault();
+
+            allSettings.Minute = userInformation.NotificationMinute;
+            allSettings.Hour = userInformation.NotificationHour;
+
+            return new General.ResponseResult() { Data = allSettings };
         }
 
         private (bool error, string message, long uploadFileId) UploadFile(UploadFileDto.Request item, User user)

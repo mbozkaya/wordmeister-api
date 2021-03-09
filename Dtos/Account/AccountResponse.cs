@@ -24,5 +24,12 @@ namespace wordmeister_api.Dtos.Account
             public bool Selected { get; set; }
             public string Title { get; set; }
         }
+
+        public class Settings
+        {
+            public bool MailSetting { get; set; }
+            public int? Hour { get; set; }
+            public int? Minute { get; set; }
+        }
     }
 }

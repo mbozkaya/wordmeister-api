@@ -19,5 +19,18 @@ namespace wordmeister_api.Dtos.Account
             public string OldPassword { get; set; }
             public string NewPassword { get; set; }
         }
+
+        public class UserSettings
+        {
+            public int Type { get; set; }
+            public bool Enable { get; set; }
+        }
+
+        public class UpdateSettings
+        {
+            public List<UserSettings> UserSettings { get; set; } = new List<UserSettings>();
+            public int? Hour { get; set; }
+            public int? Minute { get; set; }
+        }
     }
 }
