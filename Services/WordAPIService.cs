@@ -166,13 +166,10 @@ namespace wordmeister_api.Services
 
                         if (typeof(T).Name == "RandomDto" && jsonObject["pronunciation"].Type == JTokenType.String)
                         {
-                            jsonObject["pronunciation"] = $"\"All\":\"{jsonObject["pronunciation"].ToString()}\",\"Noun\":\"\",\"Verb\":\"\"";
-                            responseResult = jsonObject.ToObject<T>();
+                            jsonObject["pronunciation"] = JsonConvert.SerializeObject(new WordApiResponse.Pronunciation() { All = jsonObject["pronunciation"].ToString(), Verb = "", Noun = "" });
+                            responseResultStr = jsonObject.ToString().Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
                         }
-                        else
-                        {
-                            responseResult = JsonConvert.DeserializeObject<T>(responseResultStr);
-                        }
+                        responseResult = JsonConvert.DeserializeObject<T>(responseResultStr);
 
                     }
                     catch (HttpRequestException httpEx)
