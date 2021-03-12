@@ -95,7 +95,7 @@ namespace wordmeister_api.Services
             {
                 var newWord = _dbContext.Words.Add(new Word
                 {
-                    Text = model.Text,
+                    Text = model.Text.TurkishCharReplace().ToLower(),
                     Sentences = null,
                     CreatedDate = DateTime.Now,
                 });

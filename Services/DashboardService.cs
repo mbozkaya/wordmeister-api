@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,13 +43,13 @@ namespace wordmeister_api.Services
         public DashboardResponse.StandartDashboardCard GetLearnedWordsCard(int userId, DateRange dateRange = DateRange.LastDay)
         {
             var learnedWords = _dbContext.UserWords
-                .Where(w => w.UserId == userId && w.LearnedDate != null && w.LearnedDate >= dateRange.GetDate())
+                .Where(w => w.UserId == userId && w.IsLearned && w.LearnedDate >= dateRange.GetDate())
                 .Count();
 
             var compareDate = dateRange.GetCompareDate();
 
             var comparedWords = _dbContext.UserWords
-                .Where(w => w.UserId == userId && w.LearnedDate != null && w.LearnedDate > compareDate.end && w.LearnedDate <= compareDate.begin)
+                .Where(w => w.UserId == userId && w.IsLearned && w.LearnedDate > compareDate.end && w.LearnedDate <= compareDate.begin)
                 .Count();
 
             return new DashboardResponse.StandartDashboardCard
@@ -62,14 +63,14 @@ namespace wordmeister_api.Services
         public DashboardResponse.StandartDashboardCard GetSentencesCard(int userId, DateRange dateRange = DateRange.LastDay)
         {
             var userSentences = _dbContext.UserWords
-                .Where(w => w.UserId == userId && w.CreatedDate >= dateRange.GetDate())
+                .Where(w => w.UserId == userId && w.CreatedDate >= dateRange.GetDate() && w.MailUserWord != null)
                 .Select(s => s.Word.Sentences.Where(w => w.UserId == null || w.UserId == userId).Count())
                 .FirstOrDefault();
 
             var compareDate = dateRange.GetCompareDate();
 
             var compareSentences = _dbContext.UserWords
-                .Where(w => w.UserId == userId && w.CreatedDate > compareDate.end && w.CreatedDate <= compareDate.begin)
+                .Where(w => w.UserId == userId && w.CreatedDate > compareDate.end && w.CreatedDate <= compareDate.begin && w.MailUserWord != null)
                 .Select(s => s.Word.Sentences.Where(w => w.UserId == null || w.UserId == userId).Count())
                 .FirstOrDefault();
 
@@ -146,12 +147,14 @@ namespace wordmeister_api.Services
         {
             return _dbContext.UserWords
                 .Where(w => w.UserId == userId)
+                .Include(i => i.MailUserWord)
                 .Select(s => new DashboardResponse.LatestWords
                 {
                     CreatedDate = s.CreatedDate,
                     Description = s.Description,
                     Id = s.Id,
                     Word = s.Word.Text,
+                    Status = s.MailUserWord != null
                 })
                 .OrderByDescending(o => o.CreatedDate)
             .Take(6)
@@ -167,13 +170,13 @@ namespace wordmeister_api.Services
             DashboardResponse.Dataset learnedWords = new DashboardResponse.Dataset();
             DateTime date = DateTime.Today;
             int dateEject = (int)(date - endDate).TotalDays;
-            createdWords.Data = new int[dateEject];
-            learnedWords.Data = new int[dateEject];
+            createdWords.Data = new int[dateEject + 1];
+            learnedWords.Data = new int[dateEject + 1];
 
-            for (int i = 0; i < dateEject; i++)
+            for (int i = 0; i <= dateEject; i++)
             {
                 createdWords.Data[i] = userWords.Where(w => w.CreatedDate.Date == endDate.Date).Count();
-                learnedWords.Data[i] = userWords.Where(w => w.LearnedDate != null && w.LearnedDate.Value.Date == endDate.Date).Count();
+                learnedWords.Data[i] = userWords.Where(w => w.IsLearned && w.LearnedDate != null && w.LearnedDate.Value.Date == endDate.Date).Count();
                 labels.Add(endDate.ToString("m"));
 
                 endDate = endDate.AddDays(1);
@@ -213,8 +216,8 @@ namespace wordmeister_api.Services
                 DateTime currentMonth = endDate.AddMonths(i);
                 DateTime nextMonth = currentMonth.AddMonths(1);
 
-                createdWords.Data[i] = userWords.Where(w => w.CreatedDate.Date >= currentMonth.Date && w.CreatedDate.Date < nextMonth.Date).Count();
-                learnedWords.Data[i] = userWords.Where(w => w.LearnedDate != null && w.LearnedDate.Value.Date >= currentMonth.Date && w.LearnedDate < nextMonth.Date).Count();
+                createdWords.Data[i] = userWords.Where(w => w.CreatedDate.Date > currentMonth.Date && w.CreatedDate.Date <= nextMonth.Date).Count();
+                learnedWords.Data[i] = userWords.Where(w => w.IsLearned && w.LearnedDate != null && w.LearnedDate.Value.Date >= currentMonth.Date && w.LearnedDate < nextMonth.Date).Count();
 
                 labels.Add(currentMonth.ToString(format));
 
@@ -236,6 +239,10 @@ namespace wordmeister_api.Services
             DateTime today = DateTime.Today;
 
             var dateCount = (today.Date - endDate.Date).TotalDays;
+            if (dateCount < 6)
+            {
+                return GetLastWeekOrMonthChartData(userWords, endDate);
+            }
             createdWords.Data = new int[6];
             learnedWords.Data = new int[6];
             var format = string.Empty;
@@ -265,7 +272,7 @@ namespace wordmeister_api.Services
                 DateTime nextDate = currentDate.AddDays(addedDays);
 
                 createdWords.Data[i] = userWords.Where(w => w.CreatedDate.Date >= currentDate.Date && w.CreatedDate.Date < nextDate.Date).Count();
-                learnedWords.Data[i] = userWords.Where(w => w.LearnedDate != null && w.LearnedDate.Value.Date >= currentDate.Date && w.LearnedDate < nextDate.Date).Count();
+                learnedWords.Data[i] = userWords.Where(w => w.IsLearned && w.LearnedDate != null && w.LearnedDate.Value.Date >= currentDate.Date && w.LearnedDate < nextDate.Date).Count();
 
                 labels.Add(currentDate.ToString(format));
             }
