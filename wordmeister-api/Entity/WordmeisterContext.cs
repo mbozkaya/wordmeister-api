@@ -5,6 +5,9 @@ namespace wordmeister_api.Entity
 {
     public partial class WordmeisterContext : DbContext
     {
+        public WordmeisterContext()
+        {
+        }
         public WordmeisterContext(DbContextOptions<WordmeisterContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
