@@ -32,5 +32,17 @@ namespace wordmeister_api_test.Tests.Services
             Assert.Equal(response.FirstName, firstName);
             Assert.Equal(response.LastName, LastName);
         }
+
+        [Fact]
+        public void Authenticate_WithIncorrectData_Null()
+        {
+            wordmeister_api.Dtos.Account.AuthenticateResponse response = userService.Authenticate(new wordmeister_api.Dtos.Account.AuthenticateRequest
+            {
+                Email = "sadfaaf@tessfsdfsdt.com",
+                Password = "1111",
+            });
+
+            Assert.Null(response);
+        }
     }
 }
