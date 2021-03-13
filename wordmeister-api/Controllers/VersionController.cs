@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace wordmeister_api.Controllers
 {
-    [Route("[controller]")]
+    [Route("/")]
     [ApiController]
     public class VersionController : ControllerBase
     {

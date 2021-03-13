@@ -17,6 +17,7 @@ namespace wordmeister_api.Model
         public byte Point { get; set; }
         public virtual User User { get; set; }
         public virtual Word Word { get; set; }
+        public virtual MailUserWord MailUserWord { get; set; }
         public DateTime? LearnedDate { get; set; }
     }
 }
