@@ -47,12 +47,12 @@ namespace wordmeister_api.Services
             return new AuthenticateResponse(user, token, ppUri);
         }
 
-        public IEnumerable<User> GetAll()
+        public List<User> GetAll()
         {
             return _wordMeisterDbContext.Users.Where(w => w.Status).ToList();
         }
 
-        public User GetById(int id)
+        public User GetById(long id)
         {
             return _wordMeisterDbContext.Users.Where(w => w.Id == id).FirstOrDefault();
         }
@@ -88,6 +88,11 @@ namespace wordmeister_api.Services
         public General.ResponseResult UpdateInformation(AccountRequest.UpdateInformation model, long userId)
         {
             var user = _wordMeisterDbContext.Users.Where(w => w.Id == userId).FirstOrDefault();
+
+            if (user == null)
+            {
+                return new General.ResponseResult() { Error = true, ErrorMessage = "User not found" };
+            }
 
             user.Email = model.Email;
             user.FirstName = model.Firstname;
@@ -129,7 +134,7 @@ namespace wordmeister_api.Services
             return new General.ResponseResult();
         }
 
-        public General.ResponseResult UploadFiles(List<UploadFileDto.Request> fileModel, int userId)
+        public General.ResponseResult UploadFiles(List<UploadFileDto.Request> fileModel, long userId)
         {
             var currentUser = GetById(userId);
 
@@ -178,7 +183,7 @@ namespace wordmeister_api.Services
             return new General.ResponseResult();
         }
 
-        public General.ResponseResult GetAccountInformation(int userId)
+        public General.ResponseResult GetAccountInformation(long userId)
         {
             var user = GetById(userId);
 
@@ -235,7 +240,7 @@ namespace wordmeister_api.Services
             return new General.ResponseResult();
         }
 
-        public List<AccountResponse.UserImages> GetUserImages(int userId)
+        public List<AccountResponse.UserImages> GetUserImages(long userId)
         {
             return _wordMeisterDbContext.UploadFiles
                  .Where(w => w.UserId == userId && w.Type == (int)UploadFileType.ProfilePic && w.Status)
