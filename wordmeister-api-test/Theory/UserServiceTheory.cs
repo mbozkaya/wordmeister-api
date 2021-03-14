@@ -48,5 +48,43 @@ namespace wordmeister_api_test.Theory
                 });
             }
         }
+
+        public class CreateUserSuccess : TheoryData<SignUp>
+        {
+            public CreateUserSuccess()
+            {
+                Add(new SignUp
+                {
+                    Email = "email@test.com",
+                    FirstName = "Success",
+                    LastName = "Test",
+                    Password = "!'^^+%^+%dfsg",
+                });
+            }
+        }
+
+        public class CreateUserFailWithExistEmail : TheoryData<SignUp>
+        {
+            public CreateUserFailWithExistEmail()
+            {
+                var config = HelperMethods.GetConfiguration();
+
+                Add(new SignUp
+                {
+                    Email = config["Mock:User:Email"],
+                    FirstName = "Fail   ",
+                    LastName = "Test",
+                    Password = "zxvxv",
+                });
+            }
+        }
+
+        public class GetUserByIdExistingId : TheoryData<long>
+        {
+            public GetUserByIdExistingId()
+            {
+                Add(1);
+            }
+        }
     }
 }
