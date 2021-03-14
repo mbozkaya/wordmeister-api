@@ -15,11 +15,12 @@ namespace wordmeister_api_test.Fixture
         public MockDbContext wordmeisterDbContext { get; private set; }
         public IOptions<Appsettings> appSettings { get; set; }
         public UserService userService;
+        public IConfiguration config;
 
 
         public ServiceFixture()
         {
-            var config = InitConfiguration();
+            config = HelperMethods.GetConfiguration();
             wordmeisterDbContext = new MockDbContext();
             appSettings = Options.Create<Appsettings>(new Appsettings
             {
@@ -44,22 +45,14 @@ namespace wordmeister_api_test.Fixture
             wordmeisterDbContext.Users.Add(new wordmeister_api.Model.User
             {
                 CreatedDate = DateTime.Now,
-                Email = "sadfaaf@tessfsdfsdt.com",
-                Password = "!&sdgdfgtest123",
-                FirstName = "FirstName",
+                Email = config["Mock:User:Email"],
+                Password = config["Mock:User:Password"],
+                FirstName = config["Mock:User:FirstName"],
                 Guid = Guid.NewGuid(),
-                LastName = "LastName",
+                LastName = config["Mock:User:LastName"],
                 Status = true
             });
             wordmeisterDbContext.SaveChanges();
-        }
-
-        public IConfiguration InitConfiguration()
-        {
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("xunit.runner.json")
-                .Build();
-            return config;
         }
 
         #region IDisposibleInitializer
