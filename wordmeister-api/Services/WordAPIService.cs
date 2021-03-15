@@ -164,9 +164,21 @@ namespace wordmeister_api.Services
                         var responseResultStr = await response.Content.ReadAsStringAsync();
                         var jsonObject = JObject.Parse(responseResultStr);
 
-                        if (typeof(T).Name == "RandomDto" && jsonObject["pronunciation"].Type == JTokenType.String)
+                        if (typeof(T).Name == "RandomDto" && (jsonObject["pronunciation"] == null || jsonObject["pronunciation"].Type == JTokenType.String))
                         {
-                            jsonObject["pronunciation"] = JsonConvert.SerializeObject(new WordApiResponse.Pronunciation() { All = jsonObject["pronunciation"].ToString(), Verb = "", Noun = "" });
+                            jsonObject["pronunciation"] = JsonConvert.SerializeObject(new WordApiResponse.Pronunciation() { All = jsonObject["pronunciation"] != null ? jsonObject["pronunciation"].ToString() : string.Empty, Verb = "", Noun = "" });
+                            responseResultStr = jsonObject.ToString().Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
+                        }
+
+                        if (typeof(T).Name == "RandomDto" && jsonObject["syllables"] == null)
+                        {
+                            jsonObject["syllables"] = JsonConvert.SerializeObject(new WordApiResponse.Syllables { Count = 0, List = new List<string>() });
+                            responseResultStr = jsonObject.ToString().Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
+                        }
+
+                        if (typeof(T).Name == "RandomDto" && jsonObject["frequency"] == null)
+                        {
+                            jsonObject["frequency"] = JsonConvert.SerializeObject(decimal.Zero);
                             responseResultStr = jsonObject.ToString().Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
                         }
                         responseResult = JsonConvert.DeserializeObject<T>(responseResultStr);
@@ -176,6 +188,11 @@ namespace wordmeister_api.Services
                     {
                         //TODO Log
                         _httpRequestException = httpEx;
+                        _error = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO Log
                         _error = true;
                     }
                 }
