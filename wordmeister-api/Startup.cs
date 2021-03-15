@@ -177,6 +177,12 @@ namespace wordmeister_api
                 FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "UploadFiles")),
                 RequestPath = "/Files",
             });
+
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetRequiredService<WordmeisterContext>();
+                context.Database.EnsureCreated();
+            }
         }
     }
 }
