@@ -51,6 +51,8 @@ namespace wordmeister_api.Entity
         public DbSet<Logs> Logs{ get; set; }
         public DbSet<MailLog> MailLogs{ get; set; }
         public DbSet<MailUserWord> MailUserWords{ get; set; }
+        public DbSet<RequestLog> RequestLogs{ get; set; }
+
 
     }
 }
