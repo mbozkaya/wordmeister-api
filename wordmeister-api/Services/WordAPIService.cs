@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using wordmeister_api.Dtos;
 using wordmeister_api.Dtos.General;
 using wordmeister_api.Dtos.Word;
+using wordmeister_api.Entity;
 using wordmeister_api.Interfaces;
 
 namespace wordmeister_api.Services
@@ -21,11 +22,12 @@ namespace wordmeister_api.Services
         private HttpRequestException _httpRequestException;
         private bool _error;
         private string _baseUri = "https://wordsapiv1.p.rapidapi.com/words/";
-        public WordAPIService(IOptions<Appsettings> appSettings)
+        WordmeisterContext _dbContext;
+        public WordAPIService(IOptions<Appsettings> appSettings, WordmeisterContext dbContext)
         {
             _appSettings = appSettings;
             _client = new HttpClient();
-
+            _dbContext = dbContext;
             _request = new HttpRequestMessage
             {
                 Headers =
@@ -153,6 +155,7 @@ namespace wordmeister_api.Services
 
         private async Task<T> SendRequest<T>() where T : new()
         {
+            RequestLimit();
             var responseResult = new T();
             using (var response = await _client.SendAsync(_request))
             {
@@ -205,5 +208,26 @@ namespace wordmeister_api.Services
             return responseResult;
         }
 
+        private void RequestLimit()
+        {
+            var counter = _dbContext.RequestLogs
+                .Where(w => w.LogDate.Date == DateTime.Now.Date)
+                .FirstOrDefault();
+
+            if (counter == null)
+            {
+                _dbContext.RequestLogs.Add(new Model.RequestLog
+                {
+                    Count = 1,
+                    LogDate = DateTime.Now.Date,
+                    CreatedDate = DateTime.Now,
+                });
+                _dbContext.SaveChanges();
+            }
+            else if (counter.Count > 2400)
+            {
+                throw new Exception("Beta limit exceeded.");
+            }
+        }
     }
 }
