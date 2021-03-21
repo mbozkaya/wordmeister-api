@@ -288,7 +288,7 @@ namespace wordmeister_api.Services
         {
             if (pastValue == 0)
             {
-                return decimal.Zero;
+                return currentValue;
             }
 
             return (decimal)currentValue / pastValue - 1;
