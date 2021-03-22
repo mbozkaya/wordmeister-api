@@ -228,6 +228,11 @@ namespace wordmeister_api.Services
             {
                 throw new Exception("Beta limit exceeded.");
             }
+            else
+            {
+                counter.Count += 1;
+                _dbContext.SaveChanges();
+            }
         }
     }
 }
