@@ -10,6 +10,7 @@ wordmeister-api/.vs/
 wordmeister-api/Migrations/
 wordmeister-api/UploadFiles/
 wordmeister-api/Dockerfile
+wordmeister-api/Logs
 .dockerignore
 wordmeister-api-test/obj/
 wordmeister-api-test/bin/
