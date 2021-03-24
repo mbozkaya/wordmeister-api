@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,14 +24,17 @@ namespace wordmeister_api.Services
         IServiceScopeFactory _serviceScopeFactory;
         IWordAPIService _wordAPIService;
         IMapper _mapper;
+        ILogger<WordService> _logger;
 
-        public WordService(WordmeisterContext dbContext, ITranslateService translateService, IWordAPIService wordAPIService, IServiceScopeFactory serviceScopeFactory, IMapper mapper)
+
+        public WordService(WordmeisterContext dbContext, ITranslateService translateService, IWordAPIService wordAPIService, IServiceScopeFactory serviceScopeFactory, IMapper mapper, ILogger<WordService> logger)
         {
             _dbContext = dbContext;
             _translateService = translateService;
             _serviceScopeFactory = serviceScopeFactory;
             _wordAPIService = wordAPIService;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public WordResponse.Word GetWord(long wordId, int userId)
@@ -355,9 +359,7 @@ namespace wordmeister_api.Services
                 }
                 catch (Exception ex)
                 {
-                    //log
-
-
+                    _logger.LogError(ex, "Word Api Request Cycle");
                 }
 
                 if (success)
@@ -469,7 +471,7 @@ namespace wordmeister_api.Services
                             }
                             catch (Exception ex)
                             {
-                                //TODO Log
+                                _logger.LogError(ex, "Word Models Inserting");
                                 transaction.Rollback();
                             }
                         }

@@ -25,7 +25,7 @@ namespace wordmeister_api.Helpers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Something went wrong:");
+                _logger.LogError(ex, "Created an unexpected exception");
                 await HandleExceptionAsync(httpContext, ex);
             }
         }

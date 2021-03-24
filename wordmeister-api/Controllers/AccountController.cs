@@ -27,7 +27,6 @@ namespace wordmeister_api.Controllers
         {
             _userService = userService;
             _logger = logger;
-            _logger.LogInformation("test");
         }
 
         [HttpPost("login")]

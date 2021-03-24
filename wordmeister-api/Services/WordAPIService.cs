@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -19,15 +21,13 @@ namespace wordmeister_api.Services
         HttpClient _client;
         private HttpRequestMessage _request;
         IOptions<Appsettings> _appSettings;
-        private HttpRequestException _httpRequestException;
-        private bool _error;
         private string _baseUri = "https://wordsapiv1.p.rapidapi.com/words/";
-        WordmeisterContext _dbContext;
-        public WordAPIService(IOptions<Appsettings> appSettings, WordmeisterContext dbContext)
+        ILogger<WordAPIService> _logger;
+        IMemoryCache _cache;
+        public WordAPIService(IOptions<Appsettings> appSettings, ILogger<WordAPIService> logger, IMemoryCache cache)
         {
             _appSettings = appSettings;
             _client = new HttpClient();
-            _dbContext = dbContext;
             _request = new HttpRequestMessage
             {
                 Headers =
@@ -38,7 +38,8 @@ namespace wordmeister_api.Services
                         },
             };
             _request.Method = HttpMethod.Get;
-
+            _logger = logger;
+            _cache = cache;
         }
         public async Task<WordApiResponse.RandomDto> GetWord(string word)
         {
@@ -189,20 +190,16 @@ namespace wordmeister_api.Services
                     }
                     catch (HttpRequestException httpEx)
                     {
-                        //TODO Log
-                        _httpRequestException = httpEx;
-                        _error = true;
+                        _logger.LogError(httpEx, "Word API Request");
                     }
                     catch (Exception ex)
                     {
-                        //TODO Log
-                        _error = true;
+                        _logger.LogError(ex, "Word API Response Parser");
                     }
                 }
                 else
                 {
-                    //TODO Log
-                    _error = true;
+                    _logger.LogError("Word API returns bad request");
                 }
             }
             return responseResult;
@@ -210,28 +207,26 @@ namespace wordmeister_api.Services
 
         private void RequestLimit()
         {
-            var counter = _dbContext.RequestLogs
-                .Where(w => w.LogDate.Date == DateTime.Now.Date)
-                .FirstOrDefault();
-
-            if (counter == null)
+            General.CacheObject cacheObject = new General.CacheObject();
+            string key = "RequestLimit";
+            if (_cache.TryGetValue(key, out cacheObject) && cacheObject.CacheDate.Date == DateTime.Now.Date)
             {
-                _dbContext.RequestLogs.Add(new Model.RequestLog
+                if (cacheObject.Count < 2000)
                 {
-                    Count = 1,
-                    LogDate = DateTime.Now.Date,
-                    CreatedDate = DateTime.Now,
-                });
-                _dbContext.SaveChanges();
-            }
-            else if (counter.Count > 2400)
-            {
-                throw new Exception("Beta limit exceeded.");
+                    cacheObject.Count++;
+                    _cache.Set(key, cacheObject);
+                }
+                else
+                {
+                    throw new Exception("Request Limit Excedeed");
+                }
             }
             else
             {
-                counter.Count += 1;
-                _dbContext.SaveChanges();
+                cacheObject = new General.CacheObject();
+                cacheObject.Count = 1;
+                cacheObject.CacheDate = DateTime.Now.Date;
+                _cache.Set(key, cacheObject);
             }
         }
     }
