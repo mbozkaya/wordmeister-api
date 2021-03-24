@@ -48,10 +48,8 @@ namespace wordmeister_api.Entity
         public DbSet<WordTypeOf> WordTypeOfs { get; set; }
         public DbSet<UserWordSetting> UserWordSettings{ get; set; }
         public DbSet<UserSettingType> UserSettingsTypes{ get; set; }
-        public DbSet<Logs> Logs{ get; set; }
         public DbSet<MailLog> MailLogs{ get; set; }
         public DbSet<MailUserWord> MailUserWords{ get; set; }
-        public DbSet<RequestLog> RequestLogs{ get; set; }
 
 
     }
