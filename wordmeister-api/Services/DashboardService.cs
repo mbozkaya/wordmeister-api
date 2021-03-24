@@ -119,8 +119,6 @@ namespace wordmeister_api.Services
 
             switch (dateRange)
             {
-                case DateRange.LastDay:
-                    break;
                 case DateRange.LastWeek:
                     chartResponse = GetLastWeekOrMonthChartData(wholeUserWords, endDate);
                     break;
@@ -134,6 +132,8 @@ namespace wordmeister_api.Services
                     chartResponse = GetAllTimeChartData(wholeUserWords, firstCreatedDate);
                     break;
                 default:
+                    chartResponse = GetLastWeekOrMonthChartData(wholeUserWords, endDate);
+                    dateRange = DateRange.LastWeek;
                     break;
             }
             chartResponse.Datasets[0].Label = "Added Words";
