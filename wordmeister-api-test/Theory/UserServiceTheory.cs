@@ -1,10 +1,14 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Moq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using wordmeister_api.Dtos.Account;
 using wordmeister_api_test.Fixture;
 using Xunit;
+using static wordmeister_api.Helpers.Enums;
 
 namespace wordmeister_api_test.Theory
 {
@@ -84,6 +88,123 @@ namespace wordmeister_api_test.Theory
             public GetUserByIdExistingId()
             {
                 Add(1);
+            }
+        }
+
+        public class UpdateInformationExistingUserId : TheoryData<AccountRequest.UpdateInformation, long>
+        {
+            public UpdateInformationExistingUserId()
+            {
+                var config = HelperMethods.GetConfiguration();
+
+                Add(new AccountRequest.UpdateInformation
+                {
+                    Email = $"test_{config["Mock:User:Email"]}",
+                    Firstname = $"test_{config["Mock:User:FirstName"]}",
+                    Lastname = $"test_{config["Mock:User:LastName"]}"
+                }, 1);
+            }
+        }
+
+        public class UpdateInformationNotExistingUserId : TheoryData<AccountRequest.UpdateInformation, long>
+        {
+            public UpdateInformationNotExistingUserId()
+            {
+                Add(new AccountRequest.UpdateInformation(), 2);
+            }
+        }
+
+        public class UpdatePasswordNewValidPassword : TheoryData<AccountRequest.UpdatePassword, long>
+        {
+            public UpdatePasswordNewValidPassword()
+            {
+                var config = HelperMethods.GetConfiguration();
+
+                Add(new AccountRequest.UpdatePassword
+                {
+                    NewPassword = $"Test_{config["Mock:User:Password"]}",
+                    OldPassword = config["Mock:User:Password"],
+                }, 1);
+            }
+        }
+
+        public class UpdatePasswordWrongOldPassword : TheoryData<AccountRequest.UpdatePassword, long>
+        {
+            public UpdatePasswordWrongOldPassword()
+            {
+                Add(new AccountRequest.UpdatePassword
+                {
+                    NewPassword = "",
+                    OldPassword = "",
+                }, 1);
+            }
+        }
+
+        public class UpdatePasswordSamePassword : TheoryData<AccountRequest.UpdatePassword, long>
+        {
+            public UpdatePasswordSamePassword()
+            {
+                var config = HelperMethods.GetConfiguration();
+
+                Add(new AccountRequest.UpdatePassword
+                {
+                    NewPassword = config["Mock:User:Password"],
+                    OldPassword = config["Mock:User:Password"],
+                }, 1);
+            }
+        }
+
+        public class UploadFilesInvalidFileFormat : TheoryData<List<UploadFileDto.Request>, long>
+        {
+            public UploadFilesInvalidFileFormat()
+            {
+                var fileMock = new Mock<IFormFile>();
+                var content = "Hello World from a Fake File";
+                var fileName = "test.pdf";
+                var ms = new MemoryStream();
+                var writer = new StreamWriter(ms);
+                writer.Write(content);
+                writer.Flush();
+                ms.Position = 0;
+                fileMock.Setup(_ => _.OpenReadStream()).Returns(ms);
+                fileMock.Setup(_ => _.FileName).Returns(fileName);
+                fileMock.Setup(_ => _.Length).Returns(ms.Length);
+                Add(new List<UploadFileDto.Request>()
+                {
+                    new UploadFileDto.Request
+                    {
+                        Description="Test",
+                        File=fileMock.Object,
+                        Type=UploadFileType.ProfilePic,
+                    }
+                }, 1);
+            }
+        }
+
+        public class UploadFilesValidFileFormat : TheoryData<List<UploadFileDto.Request>, long>
+        {
+            public UploadFilesValidFileFormat()
+            {
+                var fileMock = new Mock<IFormFile>();
+                var content = "";
+                var fileName = "test.png";
+                var ms = new MemoryStream();
+                var writer = new StreamWriter(ms);
+                writer.Write(content);
+                writer.Flush();
+                ms.Position = 0;
+                fileMock.Setup(_ => _.OpenReadStream()).Returns(ms);
+                fileMock.Setup(_ => _.FileName).Returns(fileName);
+                fileMock.Setup(_ => _.Length).Returns(ms.Length);
+                Add(new List<UploadFileDto.Request>()
+                {
+                    new UploadFileDto.Request
+                    {
+                        Description="Test",
+                        File=fileMock.Object,
+                        Type=UploadFileType.ProfilePic,
+                    }
+                }, 1);
             }
         }
     }
