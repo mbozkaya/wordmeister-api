@@ -12,11 +12,11 @@ namespace wordmeister_api_test.Tests.Services
 {
     public class UserServiceTest : IClassFixture<ServiceFixture>
     {
-        private UserService userService;
+        private UserService _userService;
         private IConfiguration config;
         public UserServiceTest(ServiceFixture _serviceFixture)
         {
-            userService = _serviceFixture.userService;
+            _userService = _serviceFixture.userService;
             config = _serviceFixture.config;
         }
 
@@ -28,7 +28,7 @@ namespace wordmeister_api_test.Tests.Services
         [ClassData(typeof(UserServiceTheory.AuthenticateRequestSuccess))]
         public void Authenticate_WithCorrectData_Success(AuthenticateRequest model)
         {
-            AuthenticateResponse response = userService.Authenticate(model);
+            AuthenticateResponse response = _userService.Authenticate(model);
 
             string firstName = config["Mock:User:FirstName"], LastName = config["Mock:User:LastName"];
 
@@ -41,7 +41,7 @@ namespace wordmeister_api_test.Tests.Services
         [ClassData(typeof(UserServiceTheory.AuthenticateRequestFailWithWrongEmail))]
         public void Authenticate_WithWrongEmail_Null(AuthenticateRequest model)
         {
-            AuthenticateResponse response = userService.Authenticate(model);
+            AuthenticateResponse response = _userService.Authenticate(model);
 
             Assert.Null(response);
         }
@@ -50,7 +50,7 @@ namespace wordmeister_api_test.Tests.Services
         [ClassData(typeof(UserServiceTheory.AuthenticateRequestFailWithWrongPassword))]
         public void Authenticate_WithWrongPassword_Null(AuthenticateRequest model)
         {
-            AuthenticateResponse response = userService.Authenticate(model);
+            AuthenticateResponse response = _userService.Authenticate(model);
 
             Assert.Null(response);
         }
@@ -65,7 +65,7 @@ namespace wordmeister_api_test.Tests.Services
         public void CreateUser_NewUser_Success(SignUp model)
         {
             bool expectedError = false;
-            var response = userService.CreateUser(model);
+            var response = _userService.CreateUser(model);
 
             Assert.NotNull(response);
             Assert.Equal(response.Error, expectedError);
@@ -77,7 +77,7 @@ namespace wordmeister_api_test.Tests.Services
         {
             bool expectedError = true;
             string expectedMessage = "There is a user that have same email";
-            var response = userService.CreateUser(model);
+            var response = _userService.CreateUser(model);
 
             Assert.NotNull(response);
             Assert.Equal(response.Error, expectedError);
@@ -92,7 +92,7 @@ namespace wordmeister_api_test.Tests.Services
         public void GetAll_GetUserList_Success()
         {
             var expectedModel = new List<wordmeister_api.Model.User>();
-            List<wordmeister_api.Model.User> response = userService.GetAll();
+            List<wordmeister_api.Model.User> response = _userService.GetAll();
 
             Assert.NotNull(response);
             Assert.True(response.Count > 0);
@@ -107,12 +107,96 @@ namespace wordmeister_api_test.Tests.Services
         [ClassData(typeof(UserServiceTheory.GetUserByIdExistingId))]
         public void GetById_ExistingId_Success(long id)
         {
-            var response = userService.GetById(id);
+            wordmeister_api.Model.User response = _userService.GetById(id);
 
             Assert.NotNull(response);
         }
 
         #endregion
 
+        #region Method_UpdateInformation
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdateInformationExistingUserId))]
+        public void UpdateInformation_ExistingUser_Fail(AccountRequest.UpdateInformation model, long userId)
+        {
+            wordmeister_api.Dtos.General.General.ResponseResult response = _userService.UpdateInformation(model, userId);
+            Assert.False(response.Error);
+
+            var updatedUser = _userService.GetById(userId);
+
+            Assert.Equal(model.Firstname, updatedUser.FirstName);
+            Assert.Equal(model.Lastname, updatedUser.LastName);
+            Assert.Equal(model.Email, updatedUser.Email);
+
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdateInformationNotExistingUserId))]
+        public void UpdateInformation_NotExistingUser_Fail(AccountRequest.UpdateInformation model, long userId)
+        {
+            string errorMessage = "User not found";
+            wordmeister_api.Dtos.General.General.ResponseResult response = _userService.UpdateInformation(model, userId);
+
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        #endregion
+
+        #region Method_UpdatePassword
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdatePasswordNewValidPassword))]
+        public void UpdatePassword_ValidPassword_Success(AccountRequest.UpdatePassword model, long userId)
+        {
+            var response = _userService.UpdatePassword(model, userId);
+
+            Assert.False(response.Error);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdatePasswordWrongOldPassword))]
+        public void UpdatePassword_WrongOldPassword_Fail(AccountRequest.UpdatePassword model, long userId)
+        {
+            string errorMessage = "Old Password is wrong.";
+            var response = _userService.UpdatePassword(model, userId);
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdatePasswordSamePassword))]
+        public void UpdatePassword_SameWithOldPassword_Fail(AccountRequest.UpdatePassword model, long userId)
+        {
+            string errorMessage = "Old and new password are the same.";
+            var response = _userService.UpdatePassword(model, userId);
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        #endregion
+
+        #region Method_UploadFiles
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UploadFilesValidFileFormat))]
+        public void UploadFiles_ValidFileFormat_Success(List<UploadFileDto.Request> fileModel, long userId)
+        {
+            var response = _userService.UploadFiles(fileModel, userId);
+
+            Assert.False(response.Error);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UploadFilesInvalidFileFormat))]
+        public void UploadFiles_InvalidFileFormat_Fail(List<UploadFileDto.Request> fileModel, long userId)
+        {
+            string errorMessage = "Not validating file format was found.";
+            var response = _userService.UploadFiles(fileModel, userId);
+
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        #endregion
     }
 }
