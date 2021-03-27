@@ -23,14 +23,13 @@ namespace wordmeister_api.Services
     {
         private readonly Appsettings _appSettings;
         private WordmeisterContext _wordMeisterDbContext;
-        private readonly string uploadFilePath;
+        private readonly string uploadFilePath = "UploadFiles";
 
 
         public UserService(IOptions<Appsettings> appSettings, WordmeisterContext wordMeisterDbContext)
         {
             _appSettings = appSettings.Value;
             _wordMeisterDbContext = wordMeisterDbContext;
-            uploadFilePath = "UploadFiles";
         }
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model)
