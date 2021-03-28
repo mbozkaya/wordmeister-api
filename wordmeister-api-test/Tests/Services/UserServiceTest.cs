@@ -198,5 +198,177 @@ namespace wordmeister_api_test.Tests.Services
         }
 
         #endregion
+
+        #region Method_GetAccountInformation
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.GetAccountInformationValidUserId))]
+        public void GetAccountInformation_ValidUserId_Success(long userId)
+        {
+            var response = _userService.GetAccountInformation(userId);
+
+            Assert.False(response.Error);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.GetAccountInformationInvalidUserId))]
+        public void GetAccountInformation_InvalidUserId_Exception(long userId)
+        {
+            string errorMessage = "Object reference not set to an instance of an object.";
+            Action act = () => _userService.GetAccountInformation(userId);
+            var exception = Record.Exception(act);
+            Assert.Equal(errorMessage, exception.Message);
+        }
+
+        #endregion
+
+        #region Method_GetUserPP
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.GetUserPP))]
+        public void GetUserPP_ValidUserId_Default(long userId)
+        {
+            string uri = "Test_uri";
+            var response = _userService.GetUserPP(userId);
+
+            Assert.Equal(uri, response.Substring(response.Length - uri.Length, uri.Length));
+        }
+
+        #endregion
+
+        #region Method_SetUserPP
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.SetUserPPNoFile))]
+        public void SetUserPP_NoFile_Fail(long userId, long fileId)
+        {
+            string errorMessage = "File was not found.";
+            var response = _userService.SetUserPP(userId, fileId);
+
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.SetUserPPWithFile))]
+        public void SetUserPP_WithFile_Success(long userId, long fileId)
+        {
+            var response = _userService.SetUserPP(userId, fileId);
+
+            Assert.False(response.Error);
+        }
+
+        #endregion
+
+        #region Method_GetUserImages
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.GetUserImagesValidUser))]
+        public void GetUserImages_ValidUser_Success(long userId)
+        {
+            var response = _userService.GetUserImages(userId);
+
+            Assert.NotNull(response);
+            Assert.True(response.Count > 0);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.GetUserImagesInvalidUser))]
+        public void GetUserImages_InvalidUser_Empty(long userId)
+        {
+            var response = _userService.GetUserImages(userId);
+
+            Assert.NotNull(response);
+            Assert.Empty(response);
+        }
+
+        #endregion
+
+        #region Method_RemoveImage
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.RemoveImageNotExistingImage))]
+        public void RemoveImage_NoFile_Fail(long id, long userId)
+        {
+            string errorMessage = "The image was not found.";
+            var response = _userService.RemoveImage(id, userId);
+
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.RemoveImageUnSelectedImage))]
+        public void RemoveImage_UnSelectedFile_Success(long id, long userId)
+        {
+            var response = _userService.RemoveImage(id, userId);
+
+            Assert.False(response.Error);
+
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.RemoveImageSelectedImage))]
+        public void RemoveImage_SelectedFile_Fail(long id, long userId)
+        {
+            string errorMessage = "The image have selected status. Please change the selected image to remove.";
+            var response = _userService.RemoveImage(id, userId);
+
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        #endregion
+
+        #region Method_UpdateSettings
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdateSettingsEnableSetting))]
+        public void UpdateSettings_SettingEnable_Success(AccountRequest.UpdateSettings model, long userId)
+        {
+            var response = _userService.UpdateSettings(model, userId);
+
+            Assert.False(response.Error);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdateSettingsDisableSetting))]
+        public void UpdateSettings_SettingDisable_Success(AccountRequest.UpdateSettings model, long userId)
+        {
+            var response = _userService.UpdateSettings(model, userId);
+
+            Assert.False(response.Error);
+        }
+
+        [Theory]
+        [ClassData(typeof(UserServiceTheory.UpdateSettingsInvalidUser))]
+        public void UpdateSettings_InvalidUser_Fail(AccountRequest.UpdateSettings model, long userId)
+        {
+            string errorMessage = "Settings not found.";
+            var response = _userService.UpdateSettings(model, userId);
+
+            Assert.True(response.Error);
+            Assert.Equal(errorMessage, response.ErrorMessage);
+        }
+
+        #endregion
+
+        #region Method_GetSettings
+
+        [Fact]
+        public void GetSettings_ValidUser_Success()
+        {
+            var response = _userService.GetSettings(HelperMethods.StaticValidUserId);
+
+            Assert.False(response.Error);
+        }
+
+        [Fact]
+        public void GetSettings_InvalidUser_Exception()
+        {
+            string errorMessage = "Object reference not set to an instance of an object.";
+            Action act = () => _userService.GetSettings(0);
+            var exception = Record.Exception(act);
+            Assert.Equal(errorMessage, exception.Message);
+        }
+
+        #endregion
     }
 }
