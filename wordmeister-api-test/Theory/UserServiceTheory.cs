@@ -87,7 +87,7 @@ namespace wordmeister_api_test.Theory
         {
             public GetUserByIdExistingId()
             {
-                Add(1);
+                Add(HelperMethods.StaticValidUserId);
             }
         }
 
@@ -110,7 +110,7 @@ namespace wordmeister_api_test.Theory
         {
             public UpdateInformationNotExistingUserId()
             {
-                Add(new AccountRequest.UpdateInformation(), 2);
+                Add(new AccountRequest.UpdateInformation(), 0);
             }
         }
 
@@ -204,7 +204,146 @@ namespace wordmeister_api_test.Theory
                         File=fileMock.Object,
                         Type=UploadFileType.ProfilePic,
                     }
-                }, 1);
+                }, HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class GetAccountInformationValidUserId : TheoryData<long>
+        {
+            public GetAccountInformationValidUserId()
+            {
+                Add(HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class GetAccountInformationInvalidUserId : TheoryData<long>
+        {
+            public GetAccountInformationInvalidUserId()
+            {
+                Add(0);
+            }
+        }
+
+        public class GetUserPP : TheoryData<long>
+        {
+            public GetUserPP()
+            {
+                Add(HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class SetUserPPWithFile : TheoryData<long, long>
+        {
+            public SetUserPPWithFile()
+            {
+                Add(HelperMethods.StaticValidUserId, HelperMethods.StaticSelectedFileId);
+            }
+        }
+
+        public class SetUserPPNoFile : TheoryData<long, long>
+        {
+            public SetUserPPNoFile()
+            {
+                Add(HelperMethods.StaticValidUserId, 0);
+            }
+        }
+
+        public class GetUserImagesValidUser : TheoryData<long>
+        {
+            public GetUserImagesValidUser()
+            {
+                Add(HelperMethods.StaticValidUserId);
+            }
+        }
+        public class GetUserImagesInvalidUser : TheoryData<long>
+        {
+            public GetUserImagesInvalidUser()
+            {
+                Add(0);
+            }
+        }
+
+        public class RemoveImageNotExistingImage : TheoryData<long, long>
+        {
+            public RemoveImageNotExistingImage()
+            {
+                Add(0, HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class RemoveImageUnSelectedImage : TheoryData<long, long>
+        {
+            public RemoveImageUnSelectedImage()
+            {
+                Add(HelperMethods.StaticUnSelectedFileId, HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class RemoveImageSelectedImage : TheoryData<long, long>
+        {
+            public RemoveImageSelectedImage()
+            {
+                Add(HelperMethods.StaticSelectedFileId, HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class UpdateSettingsEnableSetting : TheoryData<AccountRequest.UpdateSettings, long>
+        {
+            public UpdateSettingsEnableSetting()
+            {
+                Add(new AccountRequest.UpdateSettings
+                {
+                    Hour = 0,
+                    Minute = 5,
+                    UserSettings = new List<AccountRequest.UserSettings>()
+                    {
+                        new AccountRequest.UserSettings
+                        {
+                            Enable=true,
+                            Type=(int)SettingType.MailNotification
+                        }
+                    }
+                }, HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class UpdateSettingsDisableSetting : TheoryData<AccountRequest.UpdateSettings, long>
+        {
+            public UpdateSettingsDisableSetting()
+            {
+                Add(new AccountRequest.UpdateSettings
+                {
+                    Hour = 0,
+                    Minute = 5,
+                    UserSettings = new List<AccountRequest.UserSettings>()
+                    {
+                        new AccountRequest.UserSettings
+                        {
+                            Enable=false,
+                            Type=(int)SettingType.MailNotification
+                        }
+                    }
+                }, HelperMethods.StaticValidUserId);
+            }
+        }
+
+        public class UpdateSettingsInvalidUser : TheoryData<AccountRequest.UpdateSettings, long>
+        {
+            public UpdateSettingsInvalidUser()
+            {
+                Add(new AccountRequest.UpdateSettings
+                {
+                    Hour = 0,
+                    Minute = 5,
+                    UserSettings = new List<AccountRequest.UserSettings>()
+                    {
+                        new AccountRequest.UserSettings
+                        {
+                            Enable=false,
+                            Type=(int)SettingType.MailNotification
+                        }
+                    }
+                }, 0);
             }
         }
     }
