@@ -221,7 +221,7 @@ namespace wordmeister_api.Services
 
             if (!isAny)
             {
-                return new General.ResponseResult { Error = true, ErrorMessage = "File was not found" };
+                return new General.ResponseResult { Error = true, ErrorMessage = "File was not found." };
             }
 
             _wordMeisterDbContext.UploadFiles
@@ -263,7 +263,7 @@ namespace wordmeister_api.Services
                 return new General.ResponseResult
                 {
                     Error = true,
-                    ErrorMessage = "The image was not found",
+                    ErrorMessage = "The image was not found.",
                 };
             }
 
@@ -272,7 +272,7 @@ namespace wordmeister_api.Services
                 return new General.ResponseResult
                 {
                     Error = true,
-                    ErrorMessage = "The image have selected status. Please change the selected image to remove",
+                    ErrorMessage = "The image have selected status. Please change the selected image to remove.",
                 };
             }
 
@@ -295,13 +295,7 @@ namespace wordmeister_api.Services
 
                 if (userSetting == null)
                 {
-                    userSetting = new UserSetting
-                    {
-                        UserId = userId,
-                        UserSettingTypeId = setting.Type,
-                        CreatedDate = DateTime.Now
-                    };
-                    _wordMeisterDbContext.UserSettings.Add(userSetting);
+                    return new General.ResponseResult { Error = true, ErrorMessage = "Settings not found." };
                 }
 
                 userSetting.Enable = setting.Enable;
