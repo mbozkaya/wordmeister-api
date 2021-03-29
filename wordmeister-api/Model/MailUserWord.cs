@@ -10,7 +10,9 @@ namespace wordmeister_api.Model
     {
         [Key]
         public long Id { get; set; }
+        public long MailLogId { get; set; }
         public long UserWordId { get; set; }
         public virtual UserWord UserWord { get; set; }
+        public virtual MailLog MailLog { get; set; }
     }
 }

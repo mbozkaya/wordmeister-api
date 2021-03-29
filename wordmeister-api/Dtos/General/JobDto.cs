@@ -11,6 +11,7 @@ namespace wordmeister_api.Dtos.General
     {
         public class UserSentencesByWord
         {
+            public long UserWordId { get; set; }
             public wordmeister_api.Model.Word Word { get; set; }
             public List<Sentence> Sentences { get; set; }
         }

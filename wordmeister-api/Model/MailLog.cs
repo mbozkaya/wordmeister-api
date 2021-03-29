@@ -13,5 +13,7 @@ namespace wordmeister_api.Model
         public long UserId { get; set; }
         public virtual User Users { get; set; }
         public DateTime CreatedDate { get; set; }
+        public virtual ICollection<MailUserWord> MailUserWords { get; set; }
+
     }
 }
