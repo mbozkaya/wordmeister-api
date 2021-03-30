@@ -17,23 +17,17 @@ namespace wordmeister_api.Helpers
 {
     public class NotificationJob : CronJobService
     {
-        private WordmeisterContext _wordMeisterDbContext;
 
         private readonly ILogger<NotificationJob> _logger;
         private IScheduleConfig<NotificationJob> _config;
-        private Mail mailHelper; 
+        IServiceScopeFactory _serviceScopeFactory;
 
         public NotificationJob(IScheduleConfig<NotificationJob> config, ILogger<NotificationJob> logger, IServiceScopeFactory serviceScopeFactory)
             : base(config.CronExpression, config.TimeZoneInfo)
         {
             _logger = logger;
             _config = config;
-
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                _wordMeisterDbContext = scope.ServiceProvider.GetService<WordmeisterContext>();
-                mailHelper = scope.ServiceProvider.GetService<Helpers.Classes.Mail>();
-            }
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         public override Task StartAsync(CancellationToken cancellationToken)
@@ -44,7 +38,11 @@ namespace wordmeister_api.Helpers
 
         public override Task DoWork(CancellationToken cancellationToken)
         {
-            Task.Run(() => { new NotificationWork(_wordMeisterDbContext, DateTime.Now, _logger, mailHelper); });
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var notificationWork = scope.ServiceProvider.GetService<INotificationWork>();
+                notificationWork.Start(DateTime.Now);
+            }
 
             return Task.CompletedTask;
         }

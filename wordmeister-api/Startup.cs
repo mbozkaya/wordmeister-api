@@ -37,7 +37,7 @@ namespace wordmeister_api
         {
             services.AddCors();
             services.AddControllers();
-            services.AddHttpClient<INotification, Helpers.Classes.Slack>();
+            //services.AddHttpClient<INotification, Helpers.Classes.Slack>();
             services.AddMemoryCache();
             services.AddSwaggerGen(options =>
             {
@@ -106,8 +106,9 @@ namespace wordmeister_api
             services.AddScoped<IWordAPIService, WordAPIService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddSingleton<IMapper, Mapper>();
-            services.AddSingleton<INotification, Helpers.Classes.Mail>();
-            services.AddSingleton<INotification, Helpers.Classes.Slack>();
+            services.AddScoped<INotification, Helpers.Classes.Mail>();
+            services.AddScoped<INotificationWork, Helpers.Classes.NotificationWork>();
+            //services.AddSingleton<INotification, Helpers.Classes.Slack>();
 
             services.Configure<FormOptions>(x =>
             {
