@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -6,51 +7,56 @@ using System.Linq;
 using System.Threading.Tasks;
 using wordmeister_api.Dtos.General;
 using wordmeister_api.Entity;
+using wordmeister_api.Interfaces;
 using wordmeister_api.Model;
 
 namespace wordmeister_api.Helpers.Classes
 {
-    public class NotificationWork
+    public class NotificationWork : INotificationWork
     {
         WordmeisterContext _wordMeisterDbContext;
-        DateTime _time;
+        DateTime _time = DateTime.Now;
         private readonly ILogger<NotificationJob> _logger;
-        private Mail _mailHelper;
+        private INotification _mailHelper;
 
-        public NotificationWork(WordmeisterContext wordMeisterDbContext, DateTime time, ILogger<NotificationJob> logger, Mail mailHelper)
+        public NotificationWork(WordmeisterContext wordmeisterContext, ILogger<NotificationJob> logger, INotification mailHelper)
         {
-            _wordMeisterDbContext = wordMeisterDbContext;
-            _time = time;
+            _wordMeisterDbContext = wordmeisterContext;
             _logger = logger;
             _mailHelper = mailHelper;
 
+        }
+
+
+        public void Start(DateTime time)
+        {
             try
             {
-                Start();
+                _time = time;
+
+                var currentNotifyUsers = GetNotificationUsers();
+
+                foreach (var user in currentNotifyUsers)
+                {
+                    var userWordSentences = GetUserNotNotifiedSentences(user.Id, _time);
+
+                    if (userWordSentences.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    var template = CreateTemplateForUser(userWordSentences, user);
+
+                    _mailHelper.Message(template, "", user.Email);
+
+                    var mailLogId = MailLog(user.Id);
+
+                    UserWordLog(userWordSentences, mailLogId);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error occured during notification job working at {_time:hh:mm:ss}.");
-            }
-        }
-
-
-        public void Start()
-        {
-
-            var currentNotifyUsers = GetNotificationUsers();
-
-            foreach (var user in currentNotifyUsers)
-            {
-                var userWordSentences = GetUserNotNotifiedSentences(user.Id, _time);
-
-                var template = CreateTemplateForUser(userWordSentences, user);
-
-                _mailHelper.Message(template, "", user.Email);
-
-                var mailLogId = MailLog(user.Id);
-
-                UserWordLog(userWordSentences, mailLogId);
             }
         }
 
